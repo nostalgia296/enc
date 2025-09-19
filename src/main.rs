@@ -7,7 +7,7 @@ fn main() {
     let matches = Command::new("Encoder/Decoder")
         .version("1.0")
         .author("Nostalgia")
-        .about("https://msbt.seku.su/网站加解密的rust实现")
+        .about("网站加解密的rust实现")
         .arg(
             Arg::new("命令")
                 .help("包括 en 和 de ,分别用于加密和解密")
@@ -32,7 +32,7 @@ fn main() {
         }
         "de" => {
             match decode(input) {
-                Ok(decoded) => println!("以解密: {}", decoded),
+                Ok(decoded) => println!("已解密: {}", decoded),
                 Err(e) => eprintln!("错误: {}", e),
             }
         }
@@ -60,13 +60,17 @@ fn decode(input: &str) -> Result<String, String> {
     let codebook_map: HashMap<char, usize> = CODEBOOK.iter().enumerate().map(|(i, &c)| (c, i)).collect();
 
     let mut bytes = Vec::new();
-    for i in (0..input.len()).step_by(2) {
-        let high = codebook_map.get(&input.chars().nth(i).unwrap());
-        let low = codebook_map.get(&input.chars().nth(i + 1).unwrap());
-        if high.is_none() || low.is_none() {
-            return Err("输入包含非法字符".to_string());
+    let mut chars = input.chars().peekable();
+
+    while let (Some(high_char), Some(low_char)) = (chars.next(), chars.next()) {
+        if high_char.is_whitespace() || low_char.is_whitespace() {
+            continue;
         }
-        let byte = (high.unwrap() << 4) | low.unwrap();
+
+        let high = codebook_map.get(&high_char).ok_or(format!("非法字符: {}", high_char))?;
+        let low = codebook_map.get(&low_char).ok_or(format!("非法字符: {}", low_char))?;
+
+        let byte = (high << 4) | low;
         bytes.push(byte as u8);
     }
 
