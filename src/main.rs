@@ -5,9 +5,9 @@ const CODEBOOK: &[char] = &['齁', '哦', '噢', '喔', '咕', '咿', '嗯', '�
 
 fn main() {
     let matches = Command::new("Encoder/Decoder")
-        .version("1.0")
+        .version("1.0-hotfix")
         .author("Nostalgia")
-        .about("网站加解密的rust实现")
+        .about("https://msbt.seku.su 网站加解密的rust实现")
         .arg(
             Arg::new("命令")
                 .help("包括 en 和 de ,分别用于加密和解密")
