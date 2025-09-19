@@ -4,7 +4,7 @@ use std::collections::HashMap;
 const CODEBOOK: &[char] = &['齁', '哦', '噢', '喔', '咕', '咿', '嗯', '啊', '～', '哈', '！', '唔', '哼', '❤', '呃', '呼'];
 
 fn main() {
-    let matches = Command::new("Encoder/Decoder")
+    let matches = Command::new("文本加解密")
         .version("1.0-hotfix")
         .author("Nostalgia")
         .about("https://msbt.seku.su 网站加解密的rust实现")
