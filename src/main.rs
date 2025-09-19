@@ -41,14 +41,16 @@ fn main() {
 }
 
 fn encode(input: &str) -> String {
-    let encoder = input.as_bytes();
+    let bytes = input.as_bytes();
     let mut encoded = String::new();
-    for &byte in encoder {
+    
+    for &byte in bytes {
         let high = (byte >> 4) & 0x0F;
         let low = byte & 0x0F;
         encoded.push(CODEBOOK[high as usize]);
         encoded.push(CODEBOOK[low as usize]);
     }
+    
     encoded
 }
 
@@ -57,25 +59,36 @@ fn decode(input: &str) -> Result<String, String> {
         return Err("输入长度必须为偶数".to_string());
     }
 
-    let codebook_map: HashMap<char, usize> = CODEBOOK.iter().enumerate().map(|(i, &c)| (c, i)).collect();
+    let codebook_map: HashMap<char, u8> = CODEBOOK.iter().enumerate()
+        .map(|(i, &c)| (c, i as u8))
+        .collect();
 
     let mut bytes = Vec::new();
-    let mut chars = input.chars().peekable();
-
-    while let (Some(high_char), Some(low_char)) = (chars.next(), chars.next()) {
-        if high_char.is_whitespace() || low_char.is_whitespace() {
-            continue;
-        }
-
-        let high = codebook_map.get(&high_char).ok_or(format!("非法字符: {}", high_char))?;
-        let low = codebook_map.get(&low_char).ok_or(format!("非法字符: {}", low_char))?;
-
+    let chars: Vec<char> = input.chars().collect();
+    
+    for i in (0..chars.len()).step_by(2) {
+        let high_char = chars[i];
+        let low_char = chars[i + 1];
+        
+        let high = *codebook_map.get(&high_char)
+            .ok_or_else(|| format!("输入包含非法字符: {}", high_char))?;
+        let low = *codebook_map.get(&low_char)
+            .ok_or_else(|| format!("输入包含非法字符: {}", low_char))?;
+        
         let byte = (high << 4) | low;
-        bytes.push(byte as u8);
+        bytes.push(byte);
     }
+
 
     match String::from_utf8(bytes) {
         Ok(decoded) => Ok(decoded),
-        Err(_) => Err("无法正确解码为UTF-8文本".to_string()),
+        Err(e) => {
+            let hex_string = e.as_bytes()
+                .iter()
+                .map(|b| format!("{:02x}", b))
+                .collect::<Vec<String>>()
+                .join(" ");
+            Err(format!("无法正确解码为UTF-8文本，原始字节: {}", hex_string))
+        }
     }
 }
